@@ -1,0 +1,595 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#0f766e">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="혈당기록">
+<title>혈당 기록장</title>
+<style>
+:root{
+  --bg:#f4f6f5; --card:#ffffff; --text:#1c2421; --sub:#66716d; --line:#e3e8e6;
+  --primary:#0f766e; --primary-soft:#e0f2ef;
+  --ok:#15803d; --ok-bg:#dcfce7;
+  --warn:#b45309; --warn-bg:#fef3c7;
+  --bad:#b91c1c; --bad-bg:#fee2e2;
+  --low:#7c3aed; --low-bg:#ede9fe;
+  --info:#475569; --info-bg:#e2e8f0;
+}
+@media (prefers-color-scheme: dark){
+  :root{
+    --bg:#111615; --card:#1b2220; --text:#e8eeec; --sub:#9aa6a2; --line:#2c3633;
+    --primary:#2dd4bf; --primary-soft:#123a35;
+    --ok:#4ade80; --ok-bg:#14361f;
+    --warn:#fbbf24; --warn-bg:#3d2e0b;
+    --bad:#f87171; --bad-bg:#421717;
+    --low:#c4b5fd; --low-bg:#2e2350;
+    --info:#cbd5e1; --info-bg:#27313b;
+  }
+}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+body{margin:0;background:var(--bg);color:var(--text);
+  font-family:-apple-system,BlinkMacSystemFont,"Apple SD Gothic Neo","Noto Sans KR","Malgun Gothic",sans-serif;
+  padding:0 16px calc(84px + env(safe-area-inset-bottom));max-width:560px;margin:0 auto;line-height:1.45}
+header{display:flex;align-items:center;justify-content:space-between;padding:18px 0 10px}
+h1{font-size:21px;margin:0}
+.icon-btn{border:1px solid var(--line);background:var(--card);color:var(--text);border-radius:10px;padding:7px 11px;font-size:13px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:16px;margin-bottom:14px}
+.card h2{font-size:15px;margin:0 0 12px;color:var(--sub);font-weight:600}
+.tab{display:none}
+.tab.active{display:block}
+
+/* 입력 */
+.value-row{display:flex;align-items:baseline;gap:8px}
+#val{width:100%;font-size:40px;font-weight:700;border:none;border-bottom:2px solid var(--line);background:transparent;color:var(--text);padding:4px 0;outline:none}
+#val:focus{border-bottom-color:var(--primary)}
+.unit{color:var(--sub);font-size:15px;white-space:nowrap}
+.label{font-size:13px;color:var(--sub);margin:14px 0 6px}
+.chips{display:flex;flex-wrap:wrap;gap:6px}
+.chip{border:1px solid var(--line);background:var(--card);color:var(--text);border-radius:999px;padding:9px 14px;font-size:15px}
+.chip.on{background:var(--primary);border-color:var(--primary);color:#fff;font-weight:600}
+@media (prefers-color-scheme: dark){.chip.on{color:#06201d}}
+input[type=datetime-local],input[type=text]{width:100%;font-size:15px;padding:10px;border:1px solid var(--line);border-radius:10px;background:var(--card);color:var(--text)}
+.save{width:100%;margin-top:16px;border:none;background:var(--text);color:var(--card);font-size:17px;font-weight:700;padding:14px;border-radius:12px}
+.preview{margin-top:12px;display:none}
+
+/* 평가 배지 */
+.badge{display:inline-block;font-size:12px;font-weight:700;padding:3px 8px;border-radius:999px;white-space:nowrap}
+.lv-ok{color:var(--ok);background:var(--ok-bg)}
+.lv-warn{color:var(--warn);background:var(--warn-bg)}
+.lv-bad{color:var(--bad);background:var(--bad-bg)}
+.lv-low{color:var(--low);background:var(--low-bg)}
+.lv-info{color:var(--info);background:var(--info-bg)}
+.eval-box{border-radius:12px;padding:10px 12px;font-size:14px}
+
+/* 달력 */
+.cal-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px}
+.cal-head b{font-size:17px}
+.cal-nav{border:1px solid var(--line);background:var(--card);color:var(--text);border-radius:10px;width:38px;height:34px;font-size:16px}
+.cal{display:grid;grid-template-columns:repeat(7,1fr);gap:4px}
+.cal .wd{font-size:11px;color:var(--sub);text-align:center;padding-bottom:2px}
+.cal .wd:first-child{color:var(--bad)}
+.cell{aspect-ratio:1/1;border-radius:10px;border:1px solid transparent;background:var(--bg);color:var(--text);
+  display:flex;flex-direction:column;align-items:center;justify-content:center;font-size:13px;padding:0}
+.cell.blank{background:transparent}
+.cell.today{border-color:var(--text)}
+.cell.sel{outline:2px solid var(--primary);outline-offset:1px}
+.cell .cnt{font-size:9px;font-weight:700;margin-top:1px}
+.cal-legend{display:flex;gap:6px;flex-wrap:wrap;margin-top:10px}
+
+/* 통계 */
+.stats{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.stat{background:var(--bg);border-radius:12px;padding:10px;text-align:center}
+.stat .k{font-size:12px;color:var(--sub)}
+.stat .v{font-size:22px;font-weight:700;margin-top:2px}
+.stat .n{font-size:11px;color:var(--sub)}
+#chart{width:100%;height:auto;margin-top:12px;display:block}
+.legend{display:flex;gap:12px;font-size:12px;color:var(--sub);margin-top:6px;flex-wrap:wrap}
+.dot{display:inline-block;width:9px;height:9px;border-radius:50%;margin-right:4px;vertical-align:middle}
+
+/* 기록 목록 */
+.rec{display:flex;align-items:center;gap:10px;padding:10px 0;border-bottom:1px solid var(--line)}
+.rec:last-child{border-bottom:none}
+.rec .time{font-size:13px;color:var(--sub);width:44px;flex-shrink:0}
+.rec .num{font-size:22px;font-weight:700;width:52px;flex-shrink:0;text-align:right}
+.rec .mid{flex:1;min-width:0}
+.rec .ctx{font-size:13px}
+.rec .memo{font-size:12px;color:var(--sub);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.del{border:none;background:transparent;color:var(--sub);font-size:18px;padding:4px 6px}
+.empty{color:var(--sub);text-align:center;padding:20px 0;font-size:14px}
+.day-sum{display:flex;align-items:center;justify-content:space-between;margin-bottom:6px}
+.day-sum b{font-size:16px}
+
+/* 하단 탭 바 */
+.navbar{position:fixed;left:0;right:0;bottom:0;background:var(--card);border-top:1px solid var(--line);
+  display:flex;justify-content:center;padding-bottom:env(safe-area-inset-bottom);z-index:40}
+.navbar .inner{display:flex;width:100%;max-width:560px}
+.navbar button{flex:1;border:none;background:transparent;color:var(--sub);padding:9px 0 8px;font-size:12px;font-weight:600;
+  display:flex;flex-direction:column;align-items:center;gap:2px}
+.navbar button svg{width:24px;height:24px}
+.navbar button.on{color:var(--primary)}
+
+/* 모달/토스트 */
+.backdrop{position:fixed;inset:0;background:rgba(0,0,0,.45);display:none;align-items:flex-end;justify-content:center;z-index:50}
+.backdrop.show{display:flex}
+.sheet{background:var(--card);width:100%;max-width:560px;border-radius:18px 18px 0 0;padding:20px 16px calc(20px + env(safe-area-inset-bottom));max-height:85vh;overflow:auto}
+.sheet h3{margin:0 0 12px;font-size:17px}
+.sheet table{width:100%;border-collapse:collapse;font-size:13px}
+.sheet td,.sheet th{border-bottom:1px solid var(--line);padding:7px 4px;text-align:left;vertical-align:top}
+.sheet p,.sheet li{font-size:13px;color:var(--sub)}
+.row-btns{display:flex;gap:8px;margin-top:14px}
+.row-btns button{flex:1;padding:12px;border-radius:10px;border:1px solid var(--line);background:var(--card);color:var(--text);font-size:15px;font-weight:600}
+.row-btns .danger{background:var(--bad);border-color:var(--bad);color:#fff}
+.toast{position:fixed;left:50%;bottom:calc(80px + env(safe-area-inset-bottom));transform:translateX(-50%) translateY(20px);background:var(--text);color:var(--card);padding:10px 16px;border-radius:999px;font-size:14px;opacity:0;transition:.25s;z-index:60;pointer-events:none;white-space:nowrap}
+.toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+.foot-note{font-size:11px;color:var(--sub);text-align:center;margin-top:6px}
+</style>
+</head>
+<body>
+
+<header>
+  <h1>🩸 혈당 기록장</h1>
+  <div style="display:flex;gap:6px">
+    <button class="icon-btn" id="btnGuide">기준</button>
+    <button class="icon-btn" id="btnBackup">백업</button>
+  </div>
+</header>
+
+<!-- ===== 탭 1: 기록 ===== -->
+<main class="tab active" id="tab-input">
+  <section class="card">
+    <h2>혈당 입력</h2>
+    <div class="value-row">
+      <input id="val" type="number" inputmode="numeric" pattern="[0-9]*" placeholder="000" min="20" max="600">
+      <span class="unit">mg/dL</span>
+    </div>
+
+    <div class="label">언제 쟀나요?</div>
+    <div class="chips" id="whenChips"></div>
+
+    <div class="label">측정 시각</div>
+    <input type="datetime-local" id="when">
+
+    <div class="label">메모 (선택)</div>
+    <input type="text" id="memo" placeholder="예: 비빔밥, 산책 20분" maxlength="60">
+
+    <div class="preview" id="preview"></div>
+    <button class="save" id="btnSave">저장</button>
+  </section>
+
+  <section class="card">
+    <h2>오늘 기록</h2>
+    <div id="todayList"></div>
+  </section>
+  <p class="foot-note">기록은 이 폰의 브라우저에만 저장됩니다. 가끔 [백업]으로 파일을 받아두세요.</p>
+</main>
+
+<!-- ===== 탭 2: 날짜별 ===== -->
+<main class="tab" id="tab-days">
+  <section class="card">
+    <div class="cal-head">
+      <button class="cal-nav" id="calPrev" aria-label="이전 달">‹</button>
+      <b id="calTitle"></b>
+      <button class="cal-nav" id="calNext" aria-label="다음 달">›</button>
+    </div>
+    <div class="cal" id="cal"></div>
+    <div class="cal-legend">
+      <span class="badge lv-ok">정상</span>
+      <span class="badge lv-warn">전단계 범위</span>
+      <span class="badge lv-bad">당뇨 범위·높음</span>
+      <span class="badge lv-low">저혈당</span>
+      <span class="badge lv-info">참고</span>
+    </div>
+    <p class="foot-note" style="text-align:left;margin:8px 0 0">날짜 색은 그날 기록 중 가장 주의가 필요한 평가입니다.</p>
+  </section>
+
+  <section class="card">
+    <div class="day-sum"><b id="dayTitle"></b><span id="dayBadge"></span></div>
+    <div id="dayList"></div>
+  </section>
+
+  <section class="card">
+    <h2>최근 7일 평균</h2>
+    <div class="stats" id="stats"></div>
+    <svg id="chart" viewBox="0 0 340 170"></svg>
+    <div class="legend">
+      <span><i class="dot" style="background:#0ea5e9"></i>공복</span>
+      <span><i class="dot" style="background:#f97316"></i>식후</span>
+      <span><i class="dot" style="background:#94a3b8"></i>식전·기타</span>
+      <span>최근 14일</span>
+    </div>
+  </section>
+</main>
+
+<!-- 하단 탭 바 -->
+<nav class="navbar">
+  <div class="inner">
+    <button class="on" data-tab="tab-input">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg>
+      기록
+    </button>
+    <button data-tab="tab-days">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg>
+      날짜별
+    </button>
+  </div>
+</nav>
+
+<!-- 기준 안내 -->
+<div class="backdrop" id="guideModal">
+  <div class="sheet">
+    <h3>평가 기준 (mg/dL)</h3>
+    <table>
+      <tr><th>측정 시점</th><th>정상</th><th>전단계 범위</th><th>당뇨 범위</th></tr>
+      <tr><td>공복 (8시간 이상)</td><td>&lt; 100</td><td>100–125</td><td>≥ 126</td></tr>
+      <tr><td>식후 2시간</td><td>&lt; 140</td><td>140–199</td><td>≥ 200</td></tr>
+      <tr><td>식후 1시간</td><td>&lt; 155</td><td>155–208</td><td>≥ 209</td></tr>
+      <tr><td>모든 시점</td><td colspan="3">70 미만 저혈당 · 54 미만 심한 저혈당 · 200 이상 높음</td></tr>
+    </table>
+    <ul>
+      <li>공복·2시간: 대한당뇨병학회 진료지침 / 미국당뇨병학회(ADA) 기준</li>
+      <li>1시간: 국제당뇨병연맹(IDF) 2024 입장문 기준</li>
+      <li>식후 30분·3시간, 식전·기타는 공식 기준이 없어 "참고"로만 표시합니다.</li>
+      <li>위 수치는 원래 <b>병원 정맥혈 검사</b>와 <b>75g 포도당 부하검사</b> 기준입니다. 손가락 혈당측정기 값과 평소 식사 후 값은 조건이 달라 <b>참고용</b>이며, 진단은 병원 검사로만 가능합니다.</li>
+      <li>식후 시간은 <b>식사를 시작한 시각</b>부터 셉니다.</li>
+    </ul>
+    <div class="row-btns"><button data-close>닫기</button></div>
+  </div>
+</div>
+
+<!-- 백업 -->
+<div class="backdrop" id="backupModal">
+  <div class="sheet">
+    <h3>백업 / 복원</h3>
+    <p>폰 브라우저 데이터가 지워지면 기록도 사라집니다. 파일로 저장해 두세요.</p>
+    <div class="row-btns">
+      <button id="btnExportJson">백업 파일 저장</button>
+      <button id="btnExportCsv">엑셀용 CSV</button>
+    </div>
+    <div class="row-btns">
+      <button id="btnImport">백업 불러오기</button>
+    </div>
+    <input type="file" id="fileImport" accept=".json,application/json" style="display:none">
+    <div class="row-btns"><button data-close>닫기</button></div>
+  </div>
+</div>
+
+<!-- 삭제 확인 -->
+<div class="backdrop" id="confirmModal">
+  <div class="sheet">
+    <h3 id="confirmText">이 기록을 삭제할까요?</h3>
+    <div class="row-btns">
+      <button data-close>취소</button>
+      <button class="danger" id="btnConfirmDel">삭제</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+const KEY = 'bg_records_v1';
+const $ = s => document.querySelector(s);
+const pad = n => String(n).padStart(2, '0');
+const DAY_MS = 24 * 60 * 60 * 1000;
+
+/* ---------- 저장소 ---------- */
+function safeGet(k){ try{ return localStorage.getItem(k); }catch(e){ return null; } }
+function safeSet(k,v){ try{ localStorage.setItem(k,v); return true; }catch(e){ toast('저장 실패: 브라우저 저장소를 쓸 수 없어요'); return false; } }
+
+let records = [];
+try{ records = JSON.parse(safeGet(KEY) || '[]'); if(!Array.isArray(records)) records = []; }catch(e){ records = []; }
+function persist(){ safeSet(KEY, JSON.stringify(records)); }
+
+/* ---------- 측정 시점 선택지 ---------- */
+const WHEN_OPTS = [
+  {id:'fasting', label:'공복',       ctx:'fasting', min:null},
+  {id:'p30',     label:'식후 30분',  ctx:'post',    min:30},
+  {id:'p60',     label:'식후 1시간', ctx:'post',    min:60},
+  {id:'p120',    label:'식후 2시간', ctx:'post',    min:120},
+  {id:'p180',    label:'식후 3시간', ctx:'post',    min:180},
+  {id:'other',   label:'식전·기타',  ctx:'other',   min:null},
+];
+let selOpt = null;
+
+/* ---------- 평가 ---------- */
+function evaluate(v, ctx, min){
+  if(v < 54)  return {lv:'low', label:'심한 저혈당', msg:'54 미만입니다. 즉시 당을 섭취하고, 반복되면 진료를 받으세요.'};
+  if(v < 70)  return {lv:'low', label:'저혈당', msg:'70 미만입니다. 사탕·주스 등으로 당을 보충하세요.'};
+  if(ctx === 'fasting'){
+    if(v < 100) return {lv:'ok',   label:'정상', msg:'공복 100 미만 — 정상 범위입니다.'};
+    if(v < 126) return {lv:'warn', label:'전단계 범위', msg:'공복 100–125 — 공복혈당장애(당뇨 전단계) 범위입니다.'};
+    return {lv:'bad', label:'당뇨 범위', msg:'공복 126 이상 — 당뇨 진단 기준 범위입니다. 병원 검사를 권합니다.'};
+  }
+  if(ctx === 'post' && min != null){
+    if(min >= 45 && min < 90){
+      if(v < 155) return {lv:'ok',   label:'정상', msg:'식후 1시간 155 미만 — 정상 범위입니다. (IDF 1시간 기준)'};
+      if(v < 209) return {lv:'warn', label:'전단계 범위', msg:'식후 1시간 155–208 — 전단계 범위입니다. (IDF 1시간 기준)'};
+      return {lv:'bad', label:'당뇨 범위', msg:'식후 1시간 209 이상 — 당뇨 기준 범위입니다. (IDF 1시간 기준)'};
+    }
+    if(min >= 90 && min <= 150){
+      if(v < 140) return {lv:'ok',   label:'정상', msg:'식후 2시간 140 미만 — 정상 범위입니다.'};
+      if(v < 200) return {lv:'warn', label:'전단계 범위', msg:'식후 2시간 140–199 — 내당능장애(당뇨 전단계) 범위입니다.'};
+      return {lv:'bad', label:'당뇨 범위', msg:'식후 2시간 200 이상 — 당뇨 기준 범위입니다. 병원 검사를 권합니다.'};
+    }
+  }
+  if(v >= 200) return {lv:'bad', label:'높음', msg:'측정 시점과 관계없이 200 이상은 높은 수치입니다.'};
+  let why = '이 측정 시점은 평가 기준이 없어 기록만 합니다.';
+  if(ctx === 'post' && min != null && min < 45) why = '식후 30분은 평가 기준이 없어요. 식후 1시간·2시간에 다시 재보세요.';
+  if(ctx === 'post' && min != null && min > 150) why = '식후 3시간은 평가 기준이 없어 기록만 합니다.';
+  return {lv:'info', label:'참고', msg: why};
+}
+/* 하루 대표 평가: 가장 주의가 필요한 것 */
+const LV_RANK = {low:5, bad:4, warn:3, ok:2, info:1};
+function dayWorst(recs){
+  let worst = null;
+  recs.forEach(r => {
+    const e = evaluate(r.v, r.ctx, r.min);
+    if(!worst || LV_RANK[e.lv] > LV_RANK[worst.lv]) worst = e;
+  });
+  return worst;
+}
+
+/* ---------- 표시용 ---------- */
+function fmtMin(m){
+  if(m == null) return '';
+  const h = Math.floor(m/60), mm = m % 60;
+  if(h === 0) return mm + '분';
+  return mm ? `${h}시간 ${mm}분` : `${h}시간`;
+}
+function ctxText(r){
+  if(r.ctx === 'fasting') return '공복';
+  if(r.ctx === 'post') return '식후' + (r.min != null ? ' ' + fmtMin(r.min) : '');
+  return '식전·기타';
+}
+function toLocalInput(d){
+  return `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`;
+}
+function hm(ts){ const d = new Date(ts); return `${pad(d.getHours())}:${pad(d.getMinutes())}`; }
+function esc(s){ return String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+function dayKey(ts){ const d = new Date(ts); return `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}`; }
+const WD = ['일','월','화','수','목','금','토'];
+
+function recRow(r){
+  const e = evaluate(r.v, r.ctx, r.min);
+  return `<div class="rec">
+    <div class="time">${hm(r.t)}</div>
+    <div class="num">${r.v}</div>
+    <div class="mid">
+      <div class="ctx">${esc(ctxText(r))} <span class="badge lv-${e.lv}">${e.label}</span></div>
+      ${r.memo ? `<div class="memo">${esc(r.memo)}</div>` : ''}
+    </div>
+    <button class="del" data-del="${r.id}" aria-label="삭제">×</button>
+  </div>`;
+}
+function recsOfDay(key){ return records.filter(r => dayKey(r.t) === key).sort((a,b) => a.t - b.t); }
+
+/* ---------- 입력 ---------- */
+function measuredAt(){
+  const v = $('#when').value;
+  const t = v ? new Date(v).getTime() : Date.now();
+  return isNaN(t) ? Date.now() : t;
+}
+function renderChips(){
+  $('#whenChips').innerHTML = WHEN_OPTS.map(o =>
+    `<button class="chip ${selOpt === o.id ? 'on' : ''}" data-opt="${o.id}">${o.label}</button>`
+  ).join('');
+}
+function renderPreview(){
+  const v = Number($('#val').value);
+  const box = $('#preview');
+  const o = WHEN_OPTS.find(x => x.id === selOpt);
+  if(!o || !v || v < 20 || v > 600){ box.style.display = 'none'; return; }
+  const e = evaluate(v, o.ctx, o.min);
+  box.style.display = 'block';
+  box.innerHTML = `<div class="eval-box lv-${e.lv}"><b>${e.label}</b> · ${e.msg}</div>`;
+}
+/* 아침(4~10시) 그날 첫 측정이면 공복을 미리 선택 */
+function guessOpt(){
+  const now = new Date();
+  const hasToday = records.some(r => dayKey(r.t) === dayKey(now.getTime()));
+  return (now.getHours() >= 4 && now.getHours() < 10 && !hasToday) ? 'fasting' : null;
+}
+function resetForm(){
+  $('#val').value = '';
+  $('#memo').value = '';
+  $('#when').value = toLocalInput(new Date());
+  selOpt = guessOpt();
+  renderChips(); renderPreview();
+}
+function renderToday(){
+  const list = recsOfDay(dayKey(Date.now())).reverse();
+  $('#todayList').innerHTML = list.length ? list.map(recRow).join('') : '<div class="empty">오늘 기록이 아직 없어요</div>';
+}
+
+/* ---------- 날짜별: 달력 ---------- */
+let calY, calM, selDay;
+(function(){ const d = new Date(); calY = d.getFullYear(); calM = d.getMonth(); selDay = dayKey(d.getTime()); })();
+
+function renderCal(){
+  $('#calTitle').textContent = `${calY}년 ${calM+1}월`;
+  const first = new Date(calY, calM, 1).getDay();
+  const last = new Date(calY, calM + 1, 0).getDate();
+  const todayK = dayKey(Date.now());
+  let html = WD.map(w => `<div class="wd">${w}</div>`).join('');
+  for(let i = 0; i < first; i++) html += '<div class="cell blank"></div>';
+  for(let d = 1; d <= last; d++){
+    const k = `${calY}-${pad(calM+1)}-${pad(d)}`;
+    const recs = recsOfDay(k);
+    const w = recs.length ? dayWorst(recs) : null;
+    const cls = ['cell', w ? 'lv-' + w.lv : '', k === todayK ? 'today' : '', k === selDay ? 'sel' : ''].join(' ');
+    html += `<button class="${cls}" data-day="${k}">${d}${recs.length ? `<span class="cnt">${recs.length}회</span>` : ''}</button>`;
+  }
+  $('#cal').innerHTML = html;
+}
+function renderDay(){
+  const [y,m,d] = selDay.split('-').map(Number);
+  const dt = new Date(y, m-1, d);
+  $('#dayTitle').textContent = `${m}월 ${d}일 (${WD[dt.getDay()]})`;
+  const recs = recsOfDay(selDay);
+  const w = recs.length ? dayWorst(recs) : null;
+  $('#dayBadge').innerHTML = w ? `<span class="badge lv-${w.lv}">${w.label}</span>` : '';
+  $('#dayList').innerHTML = recs.length ? recs.map(recRow).join('') : '<div class="empty">이 날은 기록이 없어요</div>';
+}
+
+/* ---------- 통계/그래프 ---------- */
+function avg(arr){ return arr.length ? Math.round(arr.reduce((a,b)=>a+b,0) / arr.length) : null; }
+function renderStats(){
+  const from = Date.now() - 7*DAY_MS;
+  const recent = records.filter(r => r.t >= from);
+  const f  = recent.filter(r => r.ctx === 'fasting').map(r => r.v);
+  const p1 = recent.filter(r => r.ctx === 'post' && r.min >= 45 && r.min < 90).map(r => r.v);
+  const p2 = recent.filter(r => r.ctx === 'post' && r.min >= 90 && r.min <= 150).map(r => r.v);
+  const cell = (k, arr, ctx, min) => {
+    const a = avg(arr);
+    const e = a != null ? evaluate(a, ctx, min) : null;
+    return `<div class="stat"><div class="k">${k}</div>
+      <div class="v">${a ?? '–'}</div>
+      <div class="n">${a != null ? `<span class="badge lv-${e.lv}">${e.label}</span> ${arr.length}회` : '기록 없음'}</div></div>`;
+  };
+  $('#stats').innerHTML = cell('공복', f, 'fasting', null) + cell('식후 1시간', p1, 'post', 60) + cell('식후 2시간', p2, 'post', 120);
+}
+function renderChart(){
+  const svg = $('#chart');
+  const W = 340, H = 170, L = 30, R = 8, T = 8, B = 20;
+  const now = Date.now(), from = now - 14*DAY_MS;
+  const data = records.filter(r => r.t >= from).sort((a,b) => a.t - b.t);
+  const yMin = 50, yMax = 300;
+  const x = t => L + (t - from) / (now - from) * (W - L - R);
+  const y = v => T + (1 - (Math.min(Math.max(v, yMin), yMax) - yMin) / (yMax - yMin)) * (H - T - B);
+  const css = getComputedStyle(document.documentElement);
+  const sub = css.getPropertyValue('--sub').trim(), line = css.getPropertyValue('--line').trim();
+  let s = '';
+  [[100,'#0ea5e9'],[140,'#f97316'],[200,'#ef4444']].forEach(([v,c]) => {
+    s += `<line x1="${L}" x2="${W-R}" y1="${y(v)}" y2="${y(v)}" stroke="${c}" stroke-dasharray="4 4" stroke-width="1" opacity=".55"/>`;
+    s += `<text x="${L-4}" y="${y(v)+4}" font-size="10" text-anchor="end" fill="${sub}">${v}</text>`;
+  });
+  s += `<line x1="${L}" x2="${W-R}" y1="${H-B}" y2="${H-B}" stroke="${line}"/>`;
+  for(let i = 0; i <= 14; i += 7){
+    const d = new Date(from + i*DAY_MS);
+    s += `<text x="${x(d.getTime())}" y="${H-5}" font-size="10" text-anchor="${i===0?'start':i===14?'end':'middle'}" fill="${sub}">${d.getMonth()+1}/${d.getDate()}</text>`;
+  }
+  const col = {fasting:'#0ea5e9', post:'#f97316', other:'#94a3b8'};
+  data.forEach(r => { s += `<circle cx="${x(r.t)}" cy="${y(r.v)}" r="4" fill="${col[r.ctx]}" opacity=".9"/>`; });
+  if(!data.length) s += `<text x="${W/2}" y="${H/2}" font-size="12" text-anchor="middle" fill="${sub}">아직 기록이 없어요</text>`;
+  svg.innerHTML = s;
+}
+
+function renderAll(){ renderToday(); renderCal(); renderDay(); renderStats(); renderChart(); }
+
+/* ---------- 토스트/모달 ---------- */
+let toastTimer;
+function toast(msg){
+  const t = $('#toast'); t.textContent = msg; t.classList.add('show');
+  clearTimeout(toastTimer); toastTimer = setTimeout(() => t.classList.remove('show'), 2000);
+}
+function openModal(id){ $(id).classList.add('show'); }
+document.querySelectorAll('.backdrop').forEach(m => {
+  m.addEventListener('click', e => { if(e.target === m || e.target.hasAttribute('data-close')) m.classList.remove('show'); });
+});
+
+/* ---------- 이벤트 ---------- */
+document.querySelectorAll('.navbar button').forEach(b => b.addEventListener('click', () => {
+  document.querySelectorAll('.navbar button').forEach(x => x.classList.toggle('on', x === b));
+  document.querySelectorAll('.tab').forEach(t => t.classList.toggle('active', t.id === b.dataset.tab));
+  if(b.dataset.tab === 'tab-days') renderAll();
+  window.scrollTo(0, 0);
+}));
+
+$('#whenChips').addEventListener('click', e => {
+  const b = e.target.closest('[data-opt]'); if(!b) return;
+  selOpt = b.dataset.opt; renderChips(); renderPreview();
+});
+$('#val').addEventListener('input', renderPreview);
+
+$('#btnSave').addEventListener('click', () => {
+  const v = Number($('#val').value);
+  if(!v || v < 20 || v > 600){ toast('20~600 사이 숫자를 입력해 주세요'); $('#val').focus(); return; }
+  const o = WHEN_OPTS.find(x => x.id === selOpt);
+  if(!o){ toast('언제 쟀는지 골라 주세요'); return; }
+  const r = {
+    id: Date.now().toString(36) + Math.random().toString(36).slice(2,6),
+    t: measuredAt(), v, ctx: o.ctx, min: o.min,
+    memo: $('#memo').value.trim()
+  };
+  records.push(r);
+  if(!safeSet(KEY, JSON.stringify(records))){ records.pop(); return; }
+  toast(`저장됨 · ${evaluate(r.v, r.ctx, r.min).label}`);
+  resetForm(); renderAll();
+});
+
+$('#calPrev').addEventListener('click', () => { calM--; if(calM < 0){ calM = 11; calY--; } renderCal(); });
+$('#calNext').addEventListener('click', () => { calM++; if(calM > 11){ calM = 0; calY++; } renderCal(); });
+$('#cal').addEventListener('click', e => {
+  const b = e.target.closest('[data-day]'); if(!b) return;
+  selDay = b.dataset.day; renderCal(); renderDay();
+});
+
+let pendingDel = null;
+document.addEventListener('click', e => {
+  const b = e.target.closest('[data-del]'); if(!b) return;
+  pendingDel = b.dataset.del;
+  const r = records.find(x => x.id === pendingDel);
+  if(r) $('#confirmText').textContent = `${hm(r.t)} · ${r.v} mg/dL 기록을 삭제할까요?`;
+  openModal('#confirmModal');
+});
+$('#btnConfirmDel').addEventListener('click', () => {
+  records = records.filter(r => r.id !== pendingDel);
+  persist(); renderAll(); $('#confirmModal').classList.remove('show'); toast('삭제했어요');
+});
+
+$('#btnGuide').addEventListener('click', () => openModal('#guideModal'));
+$('#btnBackup').addEventListener('click', () => openModal('#backupModal'));
+
+function download(name, text, type){
+  const blob = new Blob([text], {type});
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob); a.download = name;
+  document.body.appendChild(a); a.click(); a.remove();
+  setTimeout(() => URL.revokeObjectURL(a.href), 1000);
+}
+function stamp(){ const d = new Date(); return `${d.getFullYear()}${pad(d.getMonth()+1)}${pad(d.getDate())}`; }
+
+$('#btnExportJson').addEventListener('click', () => {
+  download(`혈당기록_백업_${stamp()}.json`, JSON.stringify({app:'bg-log', version:1, records}, null, 1), 'application/json');
+});
+$('#btnExportCsv').addEventListener('click', () => {
+  const rows = [['날짜','시각','혈당(mg/dL)','측정시점','평가','메모']];
+  [...records].sort((a,b) => a.t - b.t).forEach(r => {
+    rows.push([dayKey(r.t), hm(r.t), r.v, ctxText(r), evaluate(r.v, r.ctx, r.min).label, r.memo || '']);
+  });
+  const csv = '﻿' + rows.map(row => row.map(c => `"${String(c).replace(/"/g,'""')}"`).join(',')).join('\r\n');
+  download(`혈당기록_${stamp()}.csv`, csv, 'text/csv;charset=utf-8');
+});
+$('#btnImport').addEventListener('click', () => $('#fileImport').click());
+$('#fileImport').addEventListener('change', async e => {
+  const f = e.target.files[0]; if(!f) return;
+  try{
+    const txt = (await f.text()).replace(/[​-‍﻿]/g, '');
+    const obj = JSON.parse(txt);
+    const arr = Array.isArray(obj) ? obj : obj.records;
+    if(!Array.isArray(arr)) throw new Error();
+    const ids = new Set(records.map(r => r.id));
+    let added = 0;
+    arr.forEach(r => {
+      if(r && r.id && typeof r.t === 'number' && typeof r.v === 'number' && !ids.has(r.id)){
+        records.push(r); ids.add(r.id); added++;
+      }
+    });
+    persist(); renderAll(); toast(`${added}개 기록을 불러왔어요`);
+    $('#backupModal').classList.remove('show');
+  }catch(err){ toast('백업 파일을 읽을 수 없어요'); }
+  e.target.value = '';
+});
+
+/* ---------- 시작 ---------- */
+resetForm();
+renderAll();
+document.addEventListener('visibilitychange', () => {
+  if(!document.hidden && !$('#val').value) $('#when').value = toLocalInput(new Date());
+});
+</script>
+</body>
+</html>
