@@ -3,60 +3,65 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<meta name="theme-color" content="#0f766e">
+<meta name="theme-color" content="#eaf2fb">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="혈당기록">
 <title>혈당 기록장</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable-dynamic-subset.min.css">
 <style>
 :root{
-  --bg:#f4f6f5; --card:#ffffff; --text:#1c2421; --sub:#66716d; --line:#e3e8e6;
-  --primary:#0f766e; --primary-soft:#e0f2ef;
-  --ok:#15803d; --ok-bg:#dcfce7;
-  --warn:#b45309; --warn-bg:#fef3c7;
-  --bad:#b91c1c; --bad-bg:#fee2e2;
-  --low:#7c3aed; --low-bg:#ede9fe;
-  --info:#475569; --info-bg:#e2e8f0;
+  --bg:#eaf2fb; --card:#ffffff; --text:#14263d; --sub:#6b7f97; --line:#dbe6f2;
+  --primary:#2f6fd6; --primary-soft:#e3edfb;
+  --ok:#2f8a6b;   --ok-bg:#e1f3ec;
+  --warn:#b7802a; --warn-bg:#fbf0dc;
+  --bad:#c8504d;  --bad-bg:#fbe5e4;
+  --low:#6a5fc4;  --low-bg:#ebe9fa;
+  --info:#5f7690; --info-bg:#e6edf5;
+  --c-fast:#2f6fd6; --c-post:#7fb0f0; --c-other:#a9b8ca;
+  --shadow:0 1px 2px rgba(20,38,61,.04),0 4px 14px rgba(47,111,214,.06);
 }
 @media (prefers-color-scheme: dark){
   :root{
-    --bg:#111615; --card:#1b2220; --text:#e8eeec; --sub:#9aa6a2; --line:#2c3633;
-    --primary:#2dd4bf; --primary-soft:#123a35;
-    --ok:#4ade80; --ok-bg:#14361f;
-    --warn:#fbbf24; --warn-bg:#3d2e0b;
-    --bad:#f87171; --bad-bg:#421717;
-    --low:#c4b5fd; --low-bg:#2e2350;
-    --info:#cbd5e1; --info-bg:#27313b;
+    --bg:#0e1724; --card:#152234; --text:#e6eef8; --sub:#8ea3bd; --line:#22334a;
+    --primary:#6ea4f2; --primary-soft:#1c3150;
+    --ok:#6cc7a3;   --ok-bg:#16302a;
+    --warn:#e0b36a; --warn-bg:#33291a;
+    --bad:#ec8d89;  --bad-bg:#3a2229;
+    --low:#a69ef0;  --low-bg:#26254a;
+    --info:#9db0c6; --info-bg:#1d2b3e;
+    --c-fast:#6ea4f2; --c-post:#a9caf6; --c-other:#4f6480;
+    --shadow:none;
   }
 }
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
 body{margin:0;background:var(--bg);color:var(--text);
-  font-family:-apple-system,BlinkMacSystemFont,"Apple SD Gothic Neo","Noto Sans KR","Malgun Gothic",sans-serif;
-  padding:0 16px calc(84px + env(safe-area-inset-bottom));max-width:560px;margin:0 auto;line-height:1.45}
+  font-family:"Pretendard Variable",Pretendard,-apple-system,BlinkMacSystemFont,"Apple SD Gothic Neo","Noto Sans KR","Malgun Gothic",sans-serif;
+  padding:0 16px calc(84px + env(safe-area-inset-bottom));max-width:560px;margin:0 auto;line-height:1.45;letter-spacing:-0.01em;-webkit-font-smoothing:antialiased}
+button,input{font-family:inherit;letter-spacing:inherit}
 header{display:flex;align-items:center;justify-content:space-between;padding:18px 0 10px}
-h1{font-size:21px;margin:0}
-.icon-btn{border:1px solid var(--line);background:var(--card);color:var(--text);border-radius:10px;padding:7px 11px;font-size:13px}
-.card{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:16px;margin-bottom:14px}
-.card h2{font-size:15px;margin:0 0 12px;color:var(--sub);font-weight:600}
+h1{font-size:20px;margin:0;font-weight:700;letter-spacing:-0.03em}
+.icon-btn{border:1px solid var(--line);background:var(--card);color:var(--sub);border-radius:999px;padding:6px 13px;font-size:13px;font-weight:500}
+.card{background:var(--card);border:none;border-radius:18px;padding:18px;margin-bottom:12px;box-shadow:var(--shadow)}
+.card h2{font-size:13px;margin:0 0 12px;color:var(--sub);font-weight:600;letter-spacing:0}
 .tab{display:none}
 .tab.active{display:block}
 
 /* 입력 */
 .value-row{display:flex;align-items:baseline;gap:8px}
-#val{width:100%;font-size:40px;font-weight:700;border:none;border-bottom:2px solid var(--line);background:transparent;color:var(--text);padding:4px 0;outline:none}
+#val{width:100%;font-size:42px;font-weight:600;letter-spacing:-0.03em;border:none;border-bottom:2px solid var(--line);background:transparent;color:var(--text);padding:4px 0;outline:none}
 #val:focus{border-bottom-color:var(--primary)}
 .unit{color:var(--sub);font-size:15px;white-space:nowrap}
 .label{font-size:13px;color:var(--sub);margin:14px 0 6px}
 .chips{display:flex;flex-wrap:wrap;gap:6px}
-.chip{border:1px solid var(--line);background:var(--card);color:var(--text);border-radius:999px;padding:9px 14px;font-size:15px}
-.chip.on{background:var(--primary);border-color:var(--primary);color:#fff;font-weight:600}
-@media (prefers-color-scheme: dark){.chip.on{color:#06201d}}
+.chip{border:1px solid var(--line);background:var(--card);color:var(--text);border-radius:999px;padding:9px 14px;font-size:14px;font-weight:500;transition:background .15s,color .15s}
+.chip.on{background:var(--primary);border-color:var(--primary);color:var(--card);font-weight:600}
 input[type=datetime-local],input[type=text]{width:100%;font-size:15px;padding:10px;border:1px solid var(--line);border-radius:10px;background:var(--card);color:var(--text)}
-.save{width:100%;margin-top:16px;border:none;background:var(--text);color:var(--card);font-size:17px;font-weight:700;padding:14px;border-radius:12px}
+.save{width:100%;margin-top:18px;border:none;background:var(--primary);color:var(--card);font-size:16px;font-weight:600;padding:15px;border-radius:14px}
 .preview{margin-top:12px;display:none}
 
 /* 평가 배지 */
-.badge{display:inline-block;font-size:12px;font-weight:700;padding:3px 8px;border-radius:999px;white-space:nowrap}
+.badge{display:inline-block;font-size:11px;font-weight:600;padding:3px 8px;border-radius:999px;white-space:nowrap}
 .lv-ok{color:var(--ok);background:var(--ok-bg)}
 .lv-warn{color:var(--warn);background:var(--warn-bg)}
 .lv-bad{color:var(--bad);background:var(--bad-bg)}
@@ -67,23 +72,23 @@ input[type=datetime-local],input[type=text]{width:100%;font-size:15px;padding:10
 /* 달력 */
 .cal-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px}
 .cal-head b{font-size:17px}
-.cal-nav{border:1px solid var(--line);background:var(--card);color:var(--text);border-radius:10px;width:38px;height:34px;font-size:16px}
+.cal-nav{border:1px solid var(--line);background:var(--card);color:var(--sub);border-radius:999px;width:34px;height:34px;font-size:16px}
 .cal{display:grid;grid-template-columns:repeat(7,1fr);gap:4px}
 .cal .wd{font-size:11px;color:var(--sub);text-align:center;padding-bottom:2px}
 .cal .wd:first-child{color:var(--bad)}
 .cell{aspect-ratio:1/1;border-radius:10px;border:1px solid transparent;background:var(--bg);color:var(--text);
   display:flex;flex-direction:column;align-items:center;justify-content:center;font-size:13px;padding:0}
 .cell.blank{background:transparent}
-.cell.today{border-color:var(--text)}
+.cell.today{border-color:var(--sub)}
 .cell.sel{outline:2px solid var(--primary);outline-offset:1px}
 .cell .cnt{font-size:9px;font-weight:700;margin-top:1px}
 .cal-legend{display:flex;gap:6px;flex-wrap:wrap;margin-top:10px}
 
 /* 통계 */
 .stats{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
-.stat{background:var(--bg);border-radius:12px;padding:10px;text-align:center}
+.stat{background:var(--bg);border-radius:14px;padding:10px;text-align:center}
 .stat .k{font-size:12px;color:var(--sub)}
-.stat .v{font-size:22px;font-weight:700;margin-top:2px}
+.stat .v{font-size:22px;font-weight:600;letter-spacing:-0.02em;margin-top:2px}
 .stat .n{font-size:11px;color:var(--sub)}
 #chart{width:100%;height:auto;margin-top:12px;display:block}
 .legend{display:flex;gap:12px;font-size:12px;color:var(--sub);margin-top:6px;flex-wrap:wrap}
@@ -93,7 +98,7 @@ input[type=datetime-local],input[type=text]{width:100%;font-size:15px;padding:10
 .rec{display:flex;align-items:center;gap:10px;padding:10px 0;border-bottom:1px solid var(--line)}
 .rec:last-child{border-bottom:none}
 .rec .time{font-size:13px;color:var(--sub);width:44px;flex-shrink:0}
-.rec .num{font-size:22px;font-weight:700;width:52px;flex-shrink:0;text-align:right}
+.rec .num{font-size:21px;font-weight:600;letter-spacing:-0.02em;width:52px;flex-shrink:0;text-align:right}
 .rec .mid{flex:1;min-width:0}
 .rec .ctx{font-size:13px}
 .rec .memo{font-size:12px;color:var(--sub);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
@@ -103,12 +108,12 @@ input[type=datetime-local],input[type=text]{width:100%;font-size:15px;padding:10
 .day-sum b{font-size:16px}
 
 /* 하단 탭 바 */
-.navbar{position:fixed;left:0;right:0;bottom:0;background:var(--card);border-top:1px solid var(--line);
+.navbar{position:fixed;left:0;right:0;bottom:0;background:color-mix(in srgb,var(--card) 88%,transparent);-webkit-backdrop-filter:blur(14px);backdrop-filter:blur(14px);border-top:1px solid var(--line);
   display:flex;justify-content:center;padding-bottom:env(safe-area-inset-bottom);z-index:40}
 .navbar .inner{display:flex;width:100%;max-width:560px}
 .navbar button{flex:1;border:none;background:transparent;color:var(--sub);padding:9px 0 8px;font-size:12px;font-weight:600;
   display:flex;flex-direction:column;align-items:center;gap:2px}
-.navbar button svg{width:24px;height:24px}
+.navbar button svg{width:22px;height:22px}
 .navbar button.on{color:var(--primary)}
 
 /* 모달/토스트 */
@@ -130,7 +135,7 @@ input[type=datetime-local],input[type=text]{width:100%;font-size:15px;padding:10
 <body>
 
 <header>
-  <h1>🩸 혈당 기록장</h1>
+  <h1>💧 혈당 기록장</h1>
   <div style="display:flex;gap:6px">
     <button class="icon-btn" id="btnGuide">기준</button>
     <button class="icon-btn" id="btnBackup">백업</button>
@@ -195,9 +200,9 @@ input[type=datetime-local],input[type=text]{width:100%;font-size:15px;padding:10
     <div class="stats" id="stats"></div>
     <svg id="chart" viewBox="0 0 340 170"></svg>
     <div class="legend">
-      <span><i class="dot" style="background:#0ea5e9"></i>공복</span>
-      <span><i class="dot" style="background:#f97316"></i>식후</span>
-      <span><i class="dot" style="background:#94a3b8"></i>식전·기타</span>
+      <span><i class="dot" style="background:var(--c-fast)"></i>공복</span>
+      <span><i class="dot" style="background:var(--c-post)"></i>식후</span>
+      <span><i class="dot" style="background:var(--c-other)"></i>식전·기타</span>
       <span>최근 14일</span>
     </div>
   </section>
@@ -462,8 +467,8 @@ function renderChart(){
   const css = getComputedStyle(document.documentElement);
   const sub = css.getPropertyValue('--sub').trim(), line = css.getPropertyValue('--line').trim();
   let s = '';
-  [[100,'#0ea5e9'],[140,'#f97316'],[200,'#ef4444']].forEach(([v,c]) => {
-    s += `<line x1="${L}" x2="${W-R}" y1="${y(v)}" y2="${y(v)}" stroke="${c}" stroke-dasharray="4 4" stroke-width="1" opacity=".55"/>`;
+  [[100,sub],[140,sub],[200,css.getPropertyValue('--bad').trim()]].forEach(([v,c]) => {
+    s += `<line x1="${L}" x2="${W-R}" y1="${y(v)}" y2="${y(v)}" stroke="${c}" stroke-dasharray="3 4" stroke-width="1" opacity=".45"/>`;
     s += `<text x="${L-4}" y="${y(v)+4}" font-size="10" text-anchor="end" fill="${sub}">${v}</text>`;
   });
   s += `<line x1="${L}" x2="${W-R}" y1="${H-B}" y2="${H-B}" stroke="${line}"/>`;
@@ -471,7 +476,7 @@ function renderChart(){
     const d = new Date(from + i*DAY_MS);
     s += `<text x="${x(d.getTime())}" y="${H-5}" font-size="10" text-anchor="${i===0?'start':i===14?'end':'middle'}" fill="${sub}">${d.getMonth()+1}/${d.getDate()}</text>`;
   }
-  const col = {fasting:'#0ea5e9', post:'#f97316', other:'#94a3b8'};
+  const col = {fasting:css.getPropertyValue('--c-fast').trim(), post:css.getPropertyValue('--c-post').trim(), other:css.getPropertyValue('--c-other').trim()};
   data.forEach(r => { s += `<circle cx="${x(r.t)}" cy="${y(r.v)}" r="4" fill="${col[r.ctx]}" opacity=".9"/>`; });
   if(!data.length) s += `<text x="${W/2}" y="${H/2}" font-size="12" text-anchor="middle" fill="${sub}">아직 기록이 없어요</text>`;
   svg.innerHTML = s;
